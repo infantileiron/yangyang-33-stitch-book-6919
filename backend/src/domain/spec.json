@@ -1,0 +1,67 @@
+{
+  "organization": "槐针皮具修补运营组",
+  "tagline": "识别需预留长档的皮具修补接单",
+  "source": "槐针工坊接单分级表和交付日的逾期台账",
+  "record_name": "损伤延期列联计数",
+  "algorithm": "Cochran–Armitage 损伤等级有序趋势检验",
+  "formula": "按损伤等级 g=1,2,3,4 汇总完成件数 n 与逾期 2 天以上的 s。以该工序平均长延期比例 p 构造分数差 Σg(s−np)，按固定边际的方差 sqrt[p(1−p)×N/(N−1)×Σn(g−ḡ)²] 标准化。正向单侧检验评估损伤越高是否越容易长延期，另报告等级 3–4 与 1–2 的绝对风险差。",
+  "decision_prompt": "接单照片的损伤等级是否足以决定预留较长的交付时段？",
+  "fields": [
+    {
+      "key": "process",
+      "label": "归类工序",
+      "example": "植鞣皮补色",
+      "type": "text"
+    },
+    {
+      "key": "sheet",
+      "label": "交付单汇总编号",
+      "example": "SC-2611-X17",
+      "type": "text"
+    },
+    {
+      "key": "severity",
+      "label": "接单损伤等级（1–4）",
+      "example": 4,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "key": "delay",
+      "label": "延期等级（1–4）",
+      "example": 3,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "key": "count",
+      "label": "此格已完成件数",
+      "example": 8,
+      "type": "integer",
+      "min": 1,
+      "max": 10000
+    }
+  ],
+  "parameters": [
+    {
+      "key": "alpha",
+      "label": "单侧趋势检验显著水平",
+      "type": "number",
+      "min": 0.001,
+      "max": 0.25,
+      "default": 0.05,
+      "help": "单工序长延期率有序上升的统计证据门槛。"
+    },
+    {
+      "key": "review_gap",
+      "label": "高低损伤组的长延期率差（百分点）",
+      "type": "number",
+      "min": 0,
+      "max": 100,
+      "default": 15,
+      "help": "实际风险差与趋势证据同时达线时进入排期复查。"
+    }
+  ]
+}

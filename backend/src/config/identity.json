@@ -1,0 +1,14 @@
+{
+  "slug": "yangyang-33-stitch-book",
+  "title": "槐针修补·皮具交付长延期排期复核",
+  "direction": "等级化长延期率的有序趋势",
+  "layout": "rail",
+  "theme": "鞍褐接单存根",
+  "recipient": "槐针皮具修补运营组",
+  "work_modules": [
+    "入修损伤等级登记",
+    "按延期档计算有序趋势",
+    "较长预约时段分流"
+  ],
+  "follow_latest": false
+}
