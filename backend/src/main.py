@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 from scripts.seed_demo import seed_data
 from src.config.project import SPEC
@@ -12,7 +12,7 @@ from src.config.runtime import SEED_DEMO
 from src.middlewares.headers import response_headers
 from src.middlewares.trace import trace_request
 from src.models.base import Base, Session, engine
-from src.routes import analysis, records, reports, session
+from src.routes import analysis, corrections, records, reports, session
 from src.services.broker import redis
 from src.services.errors import BusinessError
 
@@ -22,6 +22,7 @@ logger = logging.getLogger('uvicorn.error')
 @asynccontextmanager
 async def lifespan(_app):
     Base.metadata.create_all(engine)
+    ensure_schema()
     if SEED_DEMO:
         try:
             logger.info('demo row counts %s', seed_data())
@@ -30,10 +31,24 @@ async def lifespan(_app):
     yield
 
 
+def ensure_schema():
+    """create_all 只建新表，已存在表上的新增列需要显式补齐。"""
+    inspector = inspect(engine)
+    columns = {name: {column['name'] for column in inspector.get_columns(name)}
+               for name in inspector.get_table_names()}
+    statements = []
+    if 'analysis_runs' in columns and 'ledger_snapshot' not in columns['analysis_runs']:
+        statements.append('ALTER TABLE analysis_runs ADD COLUMN ledger_snapshot JSON')
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
+
+
 app = FastAPI(title=SPEC['title'], lifespan=lifespan)
 app.middleware('http')(trace_request)
 app.middleware('http')(response_headers)
-for module in (session, records, analysis, reports):
+for module in (session, records, corrections, analysis, reports):
     app.include_router(module.router)
 
 

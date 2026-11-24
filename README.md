@@ -32,13 +32,21 @@ docker compose exec -T backend python -m scripts.seed_demo
 
 | 服务 | 技术 | 用途 |
 |---|---|---|
-| frontend | HTML、CSS、ES Modules、Nginx | 工作台、录入与报告 |
+| frontend | HTML、CSS、ES Modules、Nginx | 工作台、录入、台账更正与报告 |
 | backend | Python 3.12、FastAPI、SQLAlchemy | 校验、快照、业务 API 和 JWT |
 | worker | Python 3.12、Redis | 计算排队、心跳和到时导出 |
-| db | PostgreSQL 16 | 观测、快照、签核、分发计划和审计 |
+| db | PostgreSQL 16 | 观测、更正、快照、签核、分发计划和审计 |
 | redis | Redis 7 | 唤醒、心跳和登录限流 |
 
 在 `backend` 中可用 `pip install -r requirements.txt` 安装本地依赖，设置 `DATABASE_URL`、`REDIS_URL` 和可写 `ARTIFACT_ROOT` 后运行 `uvicorn src.main:app --port 8000`，计算进程运行 `python -m src.worker`。前端修改在 `frontend/src`，用 `docker compose up -d --build frontend` 通过 Nginx 检查同源代理。业务输入定义在 `backend/src/domain/spec.json`，算法在同目录的 `analysis.py`。角色、任务状态和签核状态在后端 `backend/src/constants/enums.py` 和前端 `frontend/src/constants/enums.js` 共同定义。数据库表在 `backend/src/models/workflow.py`。
+
+### 台账更正
+
+交付单记错档时在「台账更正」页受理：把指定件数从原损伤延期格移到目标格。更正按每张交付单各自从一号起依次入账，乱序到达先挂起、缺号补齐后自动连号入账；同号同内容重试不重复挪数，同号内容不同报冲突；原格件数不够扣则整笔拒绝并占用该序号。排期分析在发起时冻结已入账台账快照，排队期间补齐的更正留给下次分析，历史报告计数保持原样。接口见 `backend/src/routes/corrections.py`，受理逻辑见 `backend/src/services/corrections.py`。
+
+### 后端测试
+
+`backend` 下执行 `python -m pytest tests/`（默认用临时 SQLite 与桩件 Redis，无需外部服务）。
 
 分发计划锁定特定已签核快照，按北京时间显示。收件箱可下载真实 CSV，当前收件组是本地交接标签。停机跨过多个周期时补送最早未投递的一期，然后追到下一个将来的周期。新快照需重新签核并建新计划。
 

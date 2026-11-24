@@ -10,7 +10,7 @@ import { esc, timeLabel } from '../utils/html.js';
 export function runTable(runs, message) {
   return table([
     {label:'分析名称',html: row => `<a href="#result/${row.id}">${esc(row.title)}</a>`},
-    {label:'观测条数',key:'sample_size'}, {label:'状态',html:status},
+    {label:'台账格数',key:'sample_size'}, {label:'状态',html:status},
     {label:'提交时间',html:row => timeLabel(row.created_at)},
   ], runs, message);
 }

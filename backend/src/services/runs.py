@@ -8,6 +8,7 @@ from src.constants.enums import Decision, Role, RunStatus
 from src.domain.analysis import analyze
 from src.models.base import utc_now
 from src.models.workflow import AnalysisRun, AuditEvent, Observation, Review
+from src.services.corrections import ledger_rows
 from src.services.errors import BusinessError
 from src.services.validation import validated
 
@@ -19,11 +20,17 @@ def create_run(db, request, actor):
     sample_ids = list(db.scalars(select(Observation.id).order_by(Observation.id)))
     if not sample_ids:
         raise BusinessError('请先导入观测记录')
+    # 发起时冻结已入账台账；排队期间补齐的更正留给下次分析，旧报告计数保持原样
+    snapshot_rows = ledger_rows(db)
+    if not snapshot_rows:
+        raise BusinessError('当前台账没有可计算的件数')
     item = AnalysisRun(title=request.title, owner=actor, parameters=parameters, observation_ids=sample_ids,
-                       last_observation_id=sample_ids[-1], sample_size=len(sample_ids))
+                       last_observation_id=sample_ids[-1], sample_size=len(snapshot_rows),
+                       ledger_snapshot={'rows': snapshot_rows})
     db.add(item)
     db.flush()
-    db.add(AuditEvent(actor=actor, action='run.created', detail=f'分析 #{item.id}，固化 {item.sample_size} 条观测'))
+    db.add(AuditEvent(actor=actor, action='run.created',
+                      detail=f'分析 #{item.id}，冻结台账 {item.sample_size} 个损伤延期格'))
     return item
 
 
@@ -62,8 +69,12 @@ def run_pending(db):
     if item is None:
         return False
     try:
-        sample = list(db.scalars(select(Observation.payload).where(Observation.id.in_(item.observation_ids))
-                                 .order_by(Observation.id)))
+        if item.ledger_snapshot is not None:
+            sample = item.ledger_snapshot['rows']
+        else:
+            # 兼容快照字段上线前创建的历史分析：按原口径读取观测
+            sample = list(db.scalars(select(Observation.payload).where(Observation.id.in_(item.observation_ids))
+                                     .order_by(Observation.id)))
         result = analyze(sample, item.parameters)
         if not {'headline', 'summary', 'metrics', 'columns', 'rows'} <= set(result):
             raise RuntimeError('invalid result schema')

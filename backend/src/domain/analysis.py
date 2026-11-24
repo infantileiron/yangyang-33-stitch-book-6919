@@ -35,9 +35,15 @@ def analyze(rows, parameters):
     seen = set()
     for row in rows:
         validate(row)
-        key = row["process"],row["sheet"]
+        if "sheet" in row:
+            key = (row["process"], row["sheet"])
+            label = f"损伤台账 {row['sheet']}"
+        else:
+            # 台账快照按（工序、损伤等级、延期等级）聚合，没有交付单编号
+            key = (row["process"], row["severity"], row["delay"])
+            label = f"损伤 {row['severity']} 级/延期 {row['delay']} 级格"
         if key in seen:
-            raise ValueError(f"损伤台账 {row['sheet']} 有重复汇总键")
+            raise ValueError(f"{label} 有重复汇总键")
         seen.add(key)
         counts = groups[row["process"]][row["severity"]]
         counts[0] += row["count"]

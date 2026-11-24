@@ -24,6 +24,7 @@ class AnalysisRun(Base):
     last_observation_id: Mapped[int] = mapped_column(Integer)
     sample_size: Mapped[int] = mapped_column(Integer)
     observation_ids: Mapped[list] = mapped_column(JSON)
+    ledger_snapshot: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(String(16), default=RunStatus.QUEUED, index=True)
     result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -68,3 +69,22 @@ class AuditEvent(Base):
     action: Mapped[str] = mapped_column(String(60))
     detail: Mapped[str] = mapped_column(String(200))
     at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class Correction(Base):
+    __tablename__ = 'corrections'
+    __table_args__ = (UniqueConstraint('sheet', 'seq', name='uq_corrections_sheet_seq'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sheet: Mapped[str] = mapped_column(String(96), index=True)
+    seq: Mapped[int] = mapped_column(Integer)
+    process: Mapped[str] = mapped_column(String(120))
+    from_severity: Mapped[int] = mapped_column(Integer)
+    from_delay: Mapped[int] = mapped_column(Integer)
+    to_severity: Mapped[int] = mapped_column(Integer)
+    to_delay: Mapped[int] = mapped_column(Integer)
+    quantity: Mapped[int] = mapped_column(Integer)
+    content_key: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    posted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

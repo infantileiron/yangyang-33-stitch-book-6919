@@ -63,5 +63,62 @@
       "default": 15,
       "help": "实际风险差与趋势证据同时达线时进入排期复查。"
     }
+  ],
+  "correction_name": "台账受理更正",
+  "correction_fields": [
+    {
+      "key": "sheet",
+      "label": "交付单汇总编号",
+      "example": "SC-2611-X17",
+      "type": "text"
+    },
+    {
+      "key": "seq",
+      "label": "交付单更正序号（从 1 起）",
+      "example": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 100000
+    },
+    {
+      "key": "from_severity",
+      "label": "原损伤等级（1–4）",
+      "example": 4,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "key": "from_delay",
+      "label": "原延期等级（1–4）",
+      "example": 3,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "key": "to_severity",
+      "label": "目标损伤等级（1–4）",
+      "example": 3,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "key": "to_delay",
+      "label": "目标延期等级（1–4）",
+      "example": 2,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "key": "quantity",
+      "label": "挪动件数",
+      "example": 3,
+      "type": "integer",
+      "min": 1,
+      "max": 10000
+    }
   ]
 }

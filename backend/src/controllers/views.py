@@ -20,6 +20,19 @@ def observation_view(item):
     return {'id': item.id, 'data': item.payload, 'created_at': timestamp(item.created_at)}
 
 
+def correction_view(item):
+    return {'id': item.id, 'sheet': item.sheet, 'seq': item.seq, 'process': item.process,
+            'from_severity': item.from_severity, 'from_delay': item.from_delay,
+            'to_severity': item.to_severity, 'to_delay': item.to_delay,
+            'quantity': item.quantity, 'status': item.status, 'reason': item.reason,
+            'created_at': timestamp(item.created_at), 'posted_at': timestamp(item.posted_at)}
+
+
+def ledger_cell_view(row):
+    return {'process': row['process'], 'severity': row['severity'],
+            'delay': row['delay'], 'count': row['count']}
+
+
 def schedule_view(item):
     return {'id': item.id, 'run_id': item.run_id, 'recipient': item.recipient,
             'interval_minutes': item.interval_minutes, 'next_at': timestamp(item.next_at), 'active': item.active}

@@ -15,7 +15,7 @@ export async function resultPage(spec, user, route) {
   const id = Number(route.id);
   if (!Number.isSafeInteger(id) || id <= 0) throw new Error('分析编号无效');
   const run = await get(`/runs/${id}`);
-  const head = intro(run.title, `${run.sample_size} 条观测 · 快照末号 ${run.snapshot_id} · ${timeLabel(run.created_at)}`, status(run));
+  const head = intro(run.title, `${run.sample_size} 个台账格 · 快照末号 ${run.snapshot_id} · ${timeLabel(run.created_at)}`, status(run));
   if (run.status === RunStatus.QUEUED) return `${head}<div class="empty" data-pending="${id}">分析任务已入队，正在等待计算。此页会自动刷新。</div>`;
   if (run.status === RunStatus.FAILED) return `${head}<div class="empty" role="alert">${esc(run.error)} <a href="#analysis">调整条件并重新计算</a></div>`;
   const data = run.result;
